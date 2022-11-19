@@ -2,7 +2,8 @@ Function Get-ForeignAndLocalMembers {
    <#
     .SYNOPSIS       
         Recursively get all members of given group(s) and retrieve their nested groups and users including foreign principles from other domains/forests and show their parent group.
-    .DESCRIPTION        
+    .DESCRIPTION    
+        This function takes an AD Group(s) name and gets all members objects to N level deep, including foregin members of other domains and shows the parent group of each returned object.        
 
     .PARAMETER Groups
     Mandatory -  The AD group(s) names of AD groups that the function will get members of.  
@@ -71,6 +72,7 @@ Function Get-ForeignAndLocalMembers {
         
     .Link
         http://amirsayes.co.uk
+        https://github.com/amirjs/Get-NestedLocalAndForeignADObjects
     #>    
     [CmdletBinding(DefaultParameterSetName = 'Groups')]    
     param (
@@ -119,7 +121,7 @@ Function Get-ForeignAndLocalMembers {
                             $ObjectNameFromSID =  ([System.Security.Principal.SecurityIdentifier]$row.name).Translate([System.Security.Principal.NTAccount])                                                                                                                                   
                         }
                         Catch {                            
-                            #If ObjectNameFromSID is not found, it's likely that object does not exist anymore although it is still referenced as a foregin member of the currect AD group
+                            #If ObjectNameFromSID is not found, it's likely that object does not exist anymore in their domain of origin, although it is still referenced as a foregin member of the currect AD group
                             #Build an object to highlight those orphened objects                            
                             If ($null -eq $ObjectNameFromSID) {                                
                                 $NewPSObj = New-Object -TypeName PSobject                                                                
