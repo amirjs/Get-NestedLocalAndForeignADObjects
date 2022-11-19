@@ -5,24 +5,72 @@ Function Get-ForeignAndLocalMembers {
     .DESCRIPTION        
 
     .PARAMETER Groups
-    The AD group(s) names of AD groups that the function will get members of.  
+    Mandatory -  The AD group(s) names of AD groups that the function will get members of.  
 
     .PARAMETER Domains
-    The FQDNs of all possible domains in your environemnt.    
+    Mandatory - The FQDNs of all possible domains in your environemnt.    
 
     .PARAMETER Server
-    The local Domain name of the group(s) being queried initially by the function. By default, the function will get the current machine domain.
+    Optional - The local Domain name of the group(s) being queried initially by the function. By default, the function will get the current machine domain.
+    
     .EXAMPLE
-        
+        $Domains = @("FQDN_DomainA","FQDN_DomainB","FQDN_DomainC")
+        $result = @()
+        $result = Get-ForeignAndLocalMembers -Groups "ADGroupXYZ" -Server "LocalDomain_Of_ADGroupXYZ" -Domains $Domains
+        $result | Select-Object Name, ParentGroup, ObjectClass, Status, ObjectDomain, mail | Format-Table
+
+        This recursively gets all nested groups and users of "ADGroupXYZ" AD Group from original domains defined in $Domains variable
+
+        Name         : User1
+        ParentGroup  : ADGroupXYZ
+        ObjectClass  : user
+        status       : {}        
+        ObjectDomain : FQDN_DomainA
+        mail         : User1@example.com
+
+        Name         : NestedGroup1
+        ParentGroup  : ADGroupXYZ
+        ObjectClass  : group
+        status       : {}        
+        ObjectDomain : FQDN_DomainB
+        mail         :
+
+        Name         : User2
+        ParentGroup  : NestedGroup1
+        ObjectClass  : user
+        status       : {}        
+        ObjectDomain : FQDN_DomainC
+        mail         : User2@example.com
+
+        Name         : S-1-5-21-2658941983-88728025-1827694959-47966481
+        ParentGroup  : ADGroupXYZ
+        ObjectClass  :
+        Status       : Couldn't find in target domain        
+        ObjectDomain :
+        mail         :
+    
+    .EXAMPLE        
+        Get-ForeignAndLocalMembers -Groups "ADGroupXYZ" -Domains ("FQDN_DomainA","FQDN_DomainB","FQDN_DomainC")
+
+        This recursively gets all nested groups and users of "ADGroupXYZ" AD Group from original domains that are passed to -Domains switch
+    
     .INPUTS
         You can pipe the group mame(s) into the command which is recognised by type, you can also pipe any parameter by name. 
+
     .OUTPUTS
-        Output (if any)
+        All properties of Get-ADObject as well as a PSCustomObject that includes the following:        
+        ParentGroup - shows the parent group of the current object (user or group)
+        Status - populated when the object is orphened to indicate that the foreign object could not be found in its source domain    
+        DisplayName of the foreign orphened object    
+        ObjectDomain - shows the source domain of the object (User or group)
+
     .NOTES
-        AUTHOR:      Mike Kanakos
-        VERSION:     1.0.4
-        DateCreated: 2020-04-15
-        DateUpdated: 2019-07-28
+        AUTHOR:     Amir Joseph Sayes
+        VERSION:    1.0
+        Twitter:    @amirjsa
+        
+    .Link
+        http://amirsayes.co.uk
     #>    
     [CmdletBinding(DefaultParameterSetName = 'Groups')]    
     param (
